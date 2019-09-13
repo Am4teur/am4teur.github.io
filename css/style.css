@@ -1,0 +1,83 @@
+.navbar-brand{
+    position: absolute;
+    left: 50%;
+}
+
+
+.menu-trigger{
+    width:1.875em;
+    height:1.125em;
+    position:absolute;
+    cursor:pointer;
+    z-index:2;
+    left:1.5em;
+    top:1.5em;
+    transition:.5s
+}
+  
+.menu-trigger:hover {
+    cursor: pointer
+}
+  
+.menu-trigger .line{
+    width:100%;
+    position:absolute;
+    top:0;left:0;
+    height:2px;
+    background:rgb(255, 255, 255);
+    transition:.3s
+}
+  
+.menu-trigger .line.line-1{
+    transition:all .3s .3s,transform .3s 0
+}
+  
+.menu-trigger .line.line-2{
+    top:50%;
+    margin-top:-1px;
+    left:0;
+    transition:all .3s .3s
+}
+  
+.menu-trigger .line.line-3{
+    bottom:0;
+    top:auto;
+    left:0;
+    transition:all .3s .3s,transform .3s 0
+}
+  
+.menu-trigger.active .line-1{
+    top:50%;
+    margin-top:-1px;
+    transform:rotate(45deg);
+    transition:all .3s,transform .3s .3s
+}
+  
+.menu-trigger.active .line-2{
+    opacity:0;
+    transition:all .3s,
+    opacity .3s 0
+}
+  
+.menu-trigger.active .line-3{
+    bottom:50%;
+    margin-bottom:-1px;
+    transform:rotate(-45deg);
+    transition:all .3s,transform .3s .3s
+}
+
+.aside {
+    width: 250px;
+    height: 100vh;
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: -251px;
+    background-color: #2c3e50;
+    transition: left .2s;
+}
+  
+.aside.active {
+    left: 0;
+    transition: left .2s;
+}

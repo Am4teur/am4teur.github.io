@@ -1,19 +1,22 @@
 let canvas;
 let ctx;
 
+/* Customized variables */
 let cellSize = 50;
 let mazeHeight = 20;
 let mazeWidth = 20;
-let x1 = 0 + cellSize/10;
-let y1 = 0 + cellSize/10;
+/* ____________________ */
+let x1 = cellSize/10;
+let y1 = cellSize/10;
 let x2 = cellSize - (cellSize/10)*2;
 let y2 = cellSize - (cellSize/10)*2;
 
 let oppx = {"N": 0, "E": 1, "S": 0, "W": -1};
 let oppy = {"N": -1, "E": 0, "S": 1, "W": 0};
 let opp = {"N": "S", "E": "W", "S": "N", "W": "E"};
-let positions = [...Array(mazeHeight)].map(e => Array(mazeWidth).fill(0));
-let set = [...Array(mazeHeight)].map(e => Array(mazeWidth).fill(0));
+/* using the x,y major order (or Column major order) != from memory and C (Row major order) */
+let positions = [...Array(mazeWidth)].map(e => Array(mazeHeight).fill(0));
+let set = [...Array(mazeWidth)].map(e => Array(mazeHeight).fill(0));
 let edges = new Array();
 
 let maze; //do not like this
@@ -22,6 +25,7 @@ let icon; //do not like this
 
 
 document.addEventListener("DOMContentLoaded", SetupCanvas);
+document.addEventListener("keydown", keyHandler);
 
 function SetupCanvas() { //main
     canvas = document.getElementById("myCanvas");
@@ -29,19 +33,21 @@ function SetupCanvas() { //main
     canvas.height = cellSize * mazeHeight;
     canvas.width = cellSize * mazeWidth;
 
+    /*
+    maze = new Maze(mazeHeight, mazeWidth);
+    maze.init();
+    icon = new Icon();
+    icon.init();
+    */
+
     initPos();
     initSet();
     initEdges();
 
     maze = new Maze(mazeHeight, mazeWidth);
-    icon = new Icon();
-
-    kruskalAlgorithm();
     maze.generate();
-
-    debugFunc();
-
-    console.log("gg");
+    icon = new Icon();
+    icon.drawIcon();
 }
 
 /*_____________________ Classes _______________________*/
@@ -49,16 +55,15 @@ class Maze {
     constructor(height, width) {
         this.height = height;
         this.width = width;
-
-        //this.clearWall(0, 0, 2);
-        // generate walls
-            //
-        // draw walls
-            // go to each position
-            // draw the walls for that position
+        
+        /* TODO */
+        this.positionsx;
+        this.setx;
+        this.edgesx;
     }
 
     generate() {
+        this.kruskalAlgorithm();
         for(let i = 0; i < positions.length; ++i) {
             for(let j = 0; j < positions[i].length; ++j) {
                 if(positions[i][j]["N"] == 0) {
@@ -77,11 +82,20 @@ class Maze {
         }
     }
 
+    clean() {
+        for(let i = 0; i < this.height; ++i) {
+
+        }
+        for(let i = 0; i < this.width; ++i) {
+
+        }
+    }
+
     drawWall(x, y, side) {
         ctx.beginPath();
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = '3';
-        switch (side) {
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = "3";
+        switch(side) {
             case "N":
                 ctx.moveTo(cellSize*x -1, cellSize*y);
                 ctx.lineTo(cellSize*(x+1), cellSize*y);
@@ -99,10 +113,41 @@ class Maze {
                 ctx.lineTo(cellSize*x, cellSize*(y+1) +1);
                 break;
             default:
-                //throw exception
+                console.log("HOW?")
                 break;
         }
         ctx.stroke();
+    }
+
+    kruskalAlgorithm() {
+        let x, y, ox, oy, set1, set2;
+        for(let i = 0; i < edges.length; ++i) {
+            x = edges[i].x;
+            y = edges[i].y;
+            ox = edges[i].x + oppx[edges[i].dir];
+            oy = edges[i].y + oppy[edges[i].dir];
+    
+            set1 = set[x][y];
+            set2 = set[ox][oy];
+            if(!(set1.connected(set2))) {
+                set1.connect(set2);
+                positions[x][y][edges[i].dir] = 1;
+                positions[ox][oy][opp[edges[i].dir]] = 1;
+            }
+        }
+    }
+
+    checkWinner() {
+        if(icon.x == maze.width-1 && icon.y == maze.height-1) {
+            document.getElementById("win").innerHTML = "Winner";
+            // pop up message: "winner"
+            // delay
+            // automatically closes
+            /* reset */
+            SetupCanvas();
+        }
+        else
+            document.getElementById("win").innerHTML = "";
     }
 }
 
@@ -130,24 +175,6 @@ class Tree {
     }
 }
 
-function kruskalAlgorithm() {
-    let x, y, ox, oy;
-    for(let i = 0; i < edges.length; ++i) {
-        x = edges[i].x;
-        y = edges[i].y;
-        ox = edges[i].x + oppx[edges[i].dir];
-        oy = edges[i].y + oppy[edges[i].dir];
-
-        set1 = set[x][y];
-        set2 = set[ox][oy];
-        if(!(set1.connected(set2))) {
-            set1.connect(set2);
-            positions[x][y][edges[i].dir] = 1;
-            positions[ox][oy][opp[edges[i].dir]] = 1;
-            //maze.clearWall(x, y, edges[i].dir);
-        }
-    }
-}
 
 class Edge {
     constructor(x, y, dir) {
@@ -158,84 +185,39 @@ class Edge {
 }
 
 
-class Node {
-    constructor() {
-        this.edges = new Array(2);
-    }
-}
-
-
 class Icon {
     constructor() {
         this.x = 0;
         this.y = 0;
-
-        this.drawIcon();
-    }
-
-    drawIcon() {
-        ctx.fillStyle = 'black';
-        ctx.fillRect(x1, y1, x2, y2);
-        //ctx.fillRect(x1+this.x*55, y1+this.y*55, x2+this.x*55, y2+this.y*55);
-
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(x1, y1+cellSize, x2, y2);
     }
 
     moveIcon() {
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = "black";
         ctx.fillRect(x1, y1, x2, y2);
+    }
+
+    drawIcon() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(x1+cellSize*this.x, y1+cellSize*this.y, x2, y2);
+
+        ctx.fillStyle = "blue";
+        ctx.fillRect(x1, y1+cellSize, x2, y2);
     }
 
     deleteIcon() {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(x1, y1, x2, y2);
+        ctx.fillStyle = "white";
+        ctx.fillRect(x1+cellSize*this.x, y1+cellSize*this.y, x2, y2);
     }
 
-    moveUp() {
-        if(this.y!=0 && positions[this.x][this.y]["N"]) {
-            --this.y;
+    move(dir){
+        if(positions[this.x][this.y][dir]) {
             this.deleteIcon();
-            y1 -= cellSize;
-            this.moveIcon();
+            this.x += oppx[dir];
+            this.y += oppy[dir];
+            this.drawIcon();
+            maze.checkWinner();
         }
     }
-
-    moveRight() {
-        if(this.x == mazeHeight - 2 && this.y == mazeWidth - 1) {
-            document.getElementById("win").innerHTML = "Winner";
-            console.log("Winner");
-        }
-        if(this.x!=mazeWidth-1 && positions[this.x][this.y]["E"]) {
-            ++this.x;
-            this.deleteIcon();
-            x1 += cellSize;
-            this.moveIcon();
-        }
-    }
-
-    moveDown() {
-        if(this.x == mazeHeight - 1 && this.y == mazeWidth - 2) {
-            document.getElementById("win").innerHTML = "Winner";
-            console.log("Winner");
-        }
-        if(this.y!=mazeHeight-1 && positions[this.x][this.y]["S"]) {
-            ++this.y;
-            this.deleteIcon();
-            y1 += cellSize;
-            this.moveIcon();
-        }
-    }
-
-    moveLeft() {
-        if(this.x!=0 && positions[this.x][this.y]["W"]) {
-            --this.x;
-            this.deleteIcon();
-            x1 -= cellSize;
-            this.moveIcon();
-        }
-    }
-    //moveLeft, moveUp, moveRight, moveDown   needs to be refactored later...
 }
 
 /*_____________________ Functions _______________________*/
@@ -258,11 +240,12 @@ function initSet() {
 function initEdges() {
     for(var i = 0; i < positions.length; ++i) {
         for(let j = 0; j < positions[i].length; ++j) {
-            if(j>0){
+            if(j>0) {
                 edges.push(new Edge(i, j, "N"));
             }
-            if(i>0)
+            if(i>0) {
                 edges.push(new Edge(i, j, "W"));
+            }
         }
     }
     edges.shuffle();
@@ -278,42 +261,24 @@ Array.prototype.shuffle = function() {
     return this;
 }
 
-function drawGrid() {
-    ctx.beginPath();
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = '2';
-    for(let i = 1; i < mazeHeight; ++i) {
-        ctx.moveTo(i*cellSize, 0);
-        ctx.lineTo(i*cellSize, cellSize*mazeHeight);
-    }
-    for(let i = 1; i < mazeWidth; ++i) {
-        ctx.moveTo(0, i*cellSize);
-        ctx.lineTo(cellSize*mazeWidth, i*cellSize);
-    }
-    ctx.stroke();
-}
-
-
-function debugFunc() {
-
-}
-
-
-document.addEventListener('keydown', keyHandler);
 
 function keyHandler(e) {
     switch (e.keyCode) {
         case 37:
-            icon.moveLeft();
+            //icon.moveLeft();
+            icon.move("W");
             break;
         case 38:
-            icon.moveUp();
+            //icon.moveUp();
+            icon.move("N");
             break;
         case 39:
-            icon.moveRight();
+            //icon.moveRight();
+            icon.move("E");
             break;
         case 40:
-            icon.moveDown();
+            //icon.moveDown();
+            icon.move("S");
             break;
         default:
             console.log("No function for that key");

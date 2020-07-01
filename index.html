@@ -21,16 +21,16 @@
 <nav class="navbar navbar-dark sticky-top bg-primary">
 	<!-- burguer -->
 	<div class="logo">
-        <a href="#">
+        <a href="/">
             <img class="logo_image" src="imgs/maze.png" alt="logoMazer">
 		</a>
-		<button class="btn btn-outline-light button">Stuff...</button>
+		<button class="btn btn-dark button">Stuff...</button>
     </div>
 
     <!-- Login & Sign In -->
     <div class="login">
-        <div class="p-1"><button class="btn btn-outline-light">Sign In</button></div>
-        <div class="p-1"><button class="btn btn-outline-light">Login</button></div>
+        <div class="p-1"><button class="btn btn-dark">Sign In</button></div>
+        <div class="p-1"><button class="btn btn-dark">Login</button></div>
     </div>
 
 </nav>
@@ -100,6 +100,10 @@
 
     <canvas id="myCanvas" style="border:2px solid black;"></canvas>
 
+    <br></br>
+    <button class="btn btn-dark" onclick="stepByStep();">Step-by-step</button>
+    <button class="btn btn-dark" onclick="redraw();">Redraw</button>
+
     <h1 id="win"></h1>
 </div>
     
@@ -108,6 +112,30 @@
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	
+	<!-- The core Firebase JS SDK is always required and must be listed first -->
+	<script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+
+	<!-- TODO: Add SDKs for Firebase products that you want to use
+		https://firebase.google.com/docs/web/setup#available-libraries -->
+	<script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-analytics.js"></script>
+
+	<script>
+	// Your web app's Firebase configuration
+	var firebaseConfig = {
+		apiKey: "AIzaSyAjUps19Am2e55-1TC7wCnrK7cF9JkYiFM",
+		authDomain: "mazer-e5ecc.firebaseapp.com",
+		databaseURL: "https://mazer-e5ecc.firebaseio.com",
+		projectId: "mazer-e5ecc",
+		storageBucket: "mazer-e5ecc.appspot.com",
+		messagingSenderId: "695470047240",
+		appId: "1:695470047240:web:06fc02c23b97b7d566d1bd",
+		measurementId: "G-NK6Z81VQWJ"
+	};
+	// Initialize Firebase
+	firebase.initializeApp(firebaseConfig);
+	firebase.analytics();
+	</script>
 </body>
 </html>

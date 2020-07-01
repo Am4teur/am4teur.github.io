@@ -6,34 +6,32 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="icon" href="imgs/logoMazer.png">
+    <link rel="icon" href="imgs/maze.png">
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="js/mazeLogic.js"></script>
     <script src="js/scriptjq.js"></script>
     
-    <title>JavaScript Maze Game</title>
+    <title>Mazer</title>
 </head>
 
 <body>
 
 
 <nav class="navbar navbar-dark sticky-top bg-primary">
-    <!-- burguer begin -->
-    <button class="btn btn-outline-light">Burguer</button>
-    <!-- burguer end -->
+	<!-- burguer -->
+	<div class="logo">
+        <a href="#">
+            <img class="logo_image" src="imgs/maze.png" alt="logoMazer">
+		</a>
+		<button class="btn btn-outline-light button">Stuff...</button>
+    </div>
 
-    <!-- brand begin -->
-    <a class="navbar-brand" href="#">
-        <img src="imgs/logoMazer.png" alt="logoMazer" height="38" width="57">
-    </a>
-    <!-- brand end -->
-        
-    <!-- Login & Sign In begin -->
-    <div class="d-flex flex-row-reverse">
+    <!-- Login & Sign In -->
+    <div class="login">
         <div class="p-1"><button class="btn btn-outline-light">Sign In</button></div>
         <div class="p-1"><button class="btn btn-outline-light">Login</button></div>
     </div>
-    <!-- Login & Sign In end -->
 
 </nav>
 
@@ -98,9 +96,9 @@
 
 
     
-<div class="container">
+<div class="maze">
 
-    <canvas id="myCanvas" style="border:2px solid #000000;"></canvas>
+    <canvas id="myCanvas" style="border:2px solid black;"></canvas>
 
     <h1 id="win"></h1>
 </div>

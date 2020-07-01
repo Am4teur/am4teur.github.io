@@ -2,9 +2,9 @@ let canvas;
 let ctx;
 
 /* Customized variables */
-let cellSize = 50;
-let mazeHeight = 20;
-let mazeWidth = 20;
+let cellSize = 20;
+let mazeHeight = 10;
+let mazeWidth = 10;
 /* ____________________ */
 let x1 = cellSize/10;
 let y1 = cellSize/10;
@@ -139,7 +139,7 @@ class Maze {
 
     checkWinner() {
         if(icon.x == maze.width-1 && icon.y == maze.height-1) {
-            document.getElementById("win").innerHTML = "Winner";
+            document.getElementById("win").innerHTML = "🎉 Congratulations Mazer, you Won! 🎉";
             // pop up message: "winner"
             // delay
             // automatically closes

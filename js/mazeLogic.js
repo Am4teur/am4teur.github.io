@@ -14,11 +14,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
-
-const docRef = db.collection("info");
-
-//writeData(); 
-readData();
+//readData();
 
 function writeData() {
     docRef.add({
@@ -46,21 +42,56 @@ function readData() {
 }
 
 function getRealTimeUpdates() {
-    docRef.onSnapshot(function (qSnap) {
-        qSnap.forEach(docSnapshot => {
-            if(docSnapshot) {
-                const myData = docSnapshot.data();
-                console.log("x: " + myData.x);
-            }
-        });
+    var docRef = db.doc("mazeState/seed");
+    docRef.onSnapshot(function (doc) {
+        if(doc) {
+            const myData = doc.data();
+            console.log("seed_num: " + myData.seed_num);
+        }
     });
 }
 
 
+function initMaze() {
+    // read maze state from DB
+    db.doc("mazeState/seed").get()
+    .then(function (doc) {
+        if(doc && doc.exists) {
+            var seed;
+            const myData = doc.data();
+
+            if(myData.seed_num) { //if seed is in DB
+                seed = myData.seed_num;
+            }
+            else { // if seed is not in DB
+                seed = Math.random();
+                writeMazeState(seed);
+            }
+
+            maze = new Maze(mazeHeight, mazeWidth, seed);
+            maze.init();
+        }
+    })
+    .catch(function (error) {
+        console.error("Error getting seed number from DB! Error message: " + error);
+    });
+}
+
+function writeMazeState(seed) {
+    var docRef = db.doc("mazeState/seed");
+    docRef.set({
+        seed_num: seed
+    })
+    .then(function() {
+        console.log("Document written");
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
 
 
-
-
+/* Canvas variables */
 let canvas;
 let ctx;
 
@@ -128,30 +159,32 @@ function redraw() {
 
 
 
-document.addEventListener("DOMContentLoaded", SetupCanvas);
+document.addEventListener("DOMContentLoaded", main);
 document.addEventListener("keydown", keyHandler);
 
-function SetupCanvas() { //main
+function main() {
+    SetupCanvas();
+
+    initMaze();
+
+    //go to DB get all icons
+    icon = new Icon(maze);
+    icon.init();
+}
+
+function SetupCanvas() {
     canvas = document.getElementById("myCanvas");
     ctx = canvas.getContext("2d");
     canvas.height = cellSize * mazeHeight;
     canvas.width = cellSize * mazeWidth;
-
-    maze = new Maze(mazeHeight, mazeWidth);
-    maze.init();
-
- //go to DB get all icons
-
-    icon = new Icon(maze);
-    icon.init();
-
 }
 
 /*_____________________ Classes _______________________*/
 class Maze {
-    constructor(height, width) {
+    constructor(height, width, seed) {
         this.maze_height = height;
         this.maze_width = width;
+        this.maze_seed = seed;
         
         /* init var positions */
         /* using the x,y major order (or Column major order) != from memory and C (Row major order) */
@@ -279,9 +312,55 @@ class Maze {
                 }
             }
         }
-        let seed = readMazeState();
 
-        this.edges = shuffle(this.edges, 1);
+        // shuffle with seed 
+        this.edges = shuffle(this.edges, this.maze_seed);
+    }
+}
+
+
+class Icon {
+    constructor(myMaze) {
+        //add user + id to DB
+        this.x = 0;
+        this.y = 0;
+        this.myMaze = myMaze;
+
+        // cellsize = 40
+        // height = width = 8
+        this.x1 = cellSize/5;
+        this.y1 = cellSize/5;
+        this.x2 = cellSize - (cellSize/5)*2;
+        this.y2 = cellSize - (cellSize/5)*2;
+    }
+
+    init() {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(this.x1, this.y1, this.x2, this.y2);
+
+        //ctx.fillStyle = "red";
+        //ctx.fillRect(this.x1, this.y1+cellSize, this.x2, this.y2);
+    }
+
+    drawIcon() {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
+    }
+
+    deleteIcon() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
+    }
+
+    move(dir){
+        if(this.myMaze.positions[this.x][this.y][dir]) {
+            this.deleteIcon();
+            this.x += oppx[dir];
+            this.y += oppy[dir];
+            this.drawIcon();
+            this.myMaze.checkWinner();
+            finished = false;
+        }
     }
 }
 
@@ -319,51 +398,6 @@ class Edge {
 }
 
 
-class Icon {
-    constructor(myMaze) {
-        //getId
-        //add user + id to DB
-        this.x = 0;
-        this.y = 0;
-        this.myMaze = myMaze;
-
-        // cellsize = 40
-        // height = width = 8
-        this.x1 = cellSize/5;
-        this.y1 = cellSize/5;
-        this.x2 = cellSize - (cellSize/5)*2;
-        this.y2 = cellSize - (cellSize/5)*2;
-    }
-
-    init() {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(this.x1, this.y1, this.x2, this.y2);
-
-        ctx.fillStyle = "red";
-        ctx.fillRect(this.x1, this.y1+cellSize, this.x2, this.y2);
-    }
-
-    drawIcon() {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
-    }
-
-    deleteIcon() {
-        ctx.fillStyle = "white";
-        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
-    }
-
-    move(dir){
-        if(this.myMaze.positions[this.x][this.y][dir]) {
-            this.deleteIcon();
-            this.x += oppx[dir];
-            this.y += oppy[dir];
-            this.drawIcon();
-            this.myMaze.checkWinner();
-            finished = false;
-        }
-    }
-}
 
 /*_____________________ Functions _______________________*/
 function shuffle(array, seed) {

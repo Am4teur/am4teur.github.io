@@ -48,8 +48,15 @@ getRealTimeUpdates = function() {
             if(docSnapshot) {
                 const myData = docSnapshot.data();
 
-                //more stuff
-                icon.drawIconCoord(myData.x, myData.y, "grey");
+                icon.deleteIconCoord(myData.x_prev, myData.y_prev);
+            }
+        });
+
+        qSnap.forEach(docSnapshot => {
+            if(docSnapshot) {
+                const myData = docSnapshot.data();
+
+                icon.drawIconCoord(myData.x, myData.y, myData.color);
             }
         });
     });
@@ -287,7 +294,7 @@ class Maze {
             icon.deleteIcon();
             icon.x = 0;
             icon.y = 0;
-            icon.writeDBIconPosition();
+            icon.updateDBIconPosition();
             icon.drawIcon();
         }
     }
@@ -328,7 +335,7 @@ class Maze {
 
 class Icon {
     constructor(myMaze) {
-        this.id = "17978113-fe57-4375-a4cc-b92df8f46af0"; //uuidv4();
+        this.id = uuidv4();
         console.log("uuid: " + this.id);
         this.x = 0;
         this.y = 0;
@@ -363,7 +370,7 @@ class Icon {
     }
 
     drawIconCoord(x, y, color) {
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = color;
         ctx.fillRect(this.x1+cellSize*x, this.y1+cellSize*y, this.x2, this.y2);
     }
 
@@ -372,12 +379,17 @@ class Icon {
         ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
     }
 
+    deleteIconCoord(x, y) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(this.x1+cellSize*x, this.y1+cellSize*y, this.x2, this.y2);
+    }
+
     move(dir){
         if(this.myMaze.positions[this.x][this.y][dir]) {
             this.deleteIcon();
+            this.updateDBIconPosition(dir);
             this.x += oppx[dir];
             this.y += oppy[dir];
-            this.writeDBIconPosition()
             this.drawIcon();
             this.myMaze.checkWinner();
             finished = false;
@@ -388,10 +400,14 @@ class Icon {
         var docRef = db.collection("usersPosition").doc(this.id);
         var xToAdd = this.x;
         var yToAdd = this.y;
+        var colorToAdd = this.color;
 
         docRef.set({
             x: xToAdd,
-            y: yToAdd
+            y: yToAdd,
+            x_prev: xToAdd,
+            y_prev: yToAdd,
+            color: colorToAdd
         })
         .then(function(doc) {
             console.log("Icon Postion written to DB");
@@ -402,6 +418,29 @@ class Icon {
 
         //this.id = id;
         console.log("my id is: " + this.id);
+    }
+    
+    updateDBIconPosition(dir) {
+        var docRef = db.collection("usersPosition").doc(this.id);
+        var xToAdd = this.x + oppx[dir];
+        var yToAdd = this.y + oppy[dir];
+        var xToAdd_prev = this.x;
+        var yToAdd_prev = this.y;
+        var colorToAdd = this.color;
+
+        docRef.set({
+            x: xToAdd,
+            y: yToAdd,
+            x_prev: xToAdd_prev,
+            y_prev: yToAdd_prev,
+            color: colorToAdd
+        })
+        .then(function(doc) {
+            console.log("Icon Postion written to DB");
+        })
+        .catch(function(error) {
+            console.error("Error adding document: ", error);
+        });
     }
 }
 

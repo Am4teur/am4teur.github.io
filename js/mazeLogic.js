@@ -41,14 +41,19 @@ function readData() {
     });
 }
 
-function getRealTimeUpdates() {
-    var docRef = db.doc("mazeState/seed");
-    docRef.onSnapshot(function (doc) {
-        if(doc) {
-            const myData = doc.data();
-            console.log("seed_num: " + myData.seed_num);
-        }
+getRealTimeUpdates = function() {
+    db.collection("usersPosition")
+    .onSnapshot(function (qSnap) {
+        qSnap.forEach(docSnapshot => {
+            if(docSnapshot) {
+                const myData = docSnapshot.data();
+
+                //more stuff
+                icon.drawIconCoord(myData.x, myData.y, "grey");
+            }
+        });
     });
+
 }
 
 
@@ -69,11 +74,10 @@ function initMazeAndIcon() {
             }
 
             maze = new Maze(mazeHeight, mazeWidth, seed);
-            maze.init();
+            maze.init(); // TODO maybe maybe maybe this isnt good, put init inside constructor
 
             //go to DB get all icons
             icon = new Icon(maze);
-            icon.init();
         }
     })
     .catch(function (error) {
@@ -170,6 +174,8 @@ function main() {
     SetupCanvas();
 
     initMazeAndIcon();
+
+    getRealTimeUpdates();
 }
 
 function SetupCanvas() {
@@ -275,13 +281,14 @@ class Maze {
             document.getElementById("win").innerHTML = "🎉 Congratulations Mazer, you Won! 🎉";
             await new Promise(r => setTimeout(r, 3000)); // sleep for 3s => 3000ms
             document.getElementById("win").innerHTML = "";
-            icon.move
             //BUG HERE, winner can win a lot of times before it starts a new maze, generating lots of mazes
             //SetupCanvas();
+
             icon.deleteIcon();
             icon.x = 0;
             icon.y = 0;
-            icon.init();
+            icon.writeDBIconPosition();
+            icon.drawIcon();
         }
     }
 
@@ -321,10 +328,14 @@ class Maze {
 
 class Icon {
     constructor(myMaze) {
-        //add user + id to DB
+        this.id = "17978113-fe57-4375-a4cc-b92df8f46af0"; //uuidv4();
+        console.log("uuid: " + this.id);
         this.x = 0;
         this.y = 0;
         this.myMaze = myMaze;
+
+        let colors = ["blue", "red", "green", "orange"];
+        this.color = colors[Math.floor(Math.random()*4)];
 
         // cellsize = 40
         // height = width = 8
@@ -332,10 +343,14 @@ class Icon {
         this.y1 = cellSize/5;
         this.x2 = cellSize - (cellSize/5)*2;
         this.y2 = cellSize - (cellSize/5)*2;
+
+        this.init();
+
+        this.writeDBIconPosition();
     }
 
     init() {
-        ctx.fillStyle = "blue";
+        ctx.fillStyle = this.color;
         ctx.fillRect(this.x1, this.y1, this.x2, this.y2);
 
         //ctx.fillStyle = "red";
@@ -343,8 +358,13 @@ class Icon {
     }
 
     drawIcon() {
-        ctx.fillStyle = "blue";
+        ctx.fillStyle = this.color;
         ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
+    }
+
+    drawIconCoord(x, y, color) {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x1+cellSize*x, this.y1+cellSize*y, this.x2, this.y2);
     }
 
     deleteIcon() {
@@ -357,10 +377,31 @@ class Icon {
             this.deleteIcon();
             this.x += oppx[dir];
             this.y += oppy[dir];
+            this.writeDBIconPosition()
             this.drawIcon();
             this.myMaze.checkWinner();
             finished = false;
         }
+    }
+
+    writeDBIconPosition() {
+        var docRef = db.collection("usersPosition").doc(this.id);
+        var xToAdd = this.x;
+        var yToAdd = this.y;
+
+        docRef.set({
+            x: xToAdd,
+            y: yToAdd
+        })
+        .then(function(doc) {
+            console.log("Icon Postion written to DB");
+        })
+        .catch(function(error) {
+            console.error("Error adding document: ", error);
+        });
+
+        //this.id = id;
+        console.log("my id is: " + this.id);
     }
 }
 

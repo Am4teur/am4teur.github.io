@@ -52,7 +52,7 @@ function getRealTimeUpdates() {
 }
 
 
-function initMaze() {
+function initMazeAndIcon() {
     // read maze state from DB
     db.doc("mazeState/seed").get()
     .then(function (doc) {
@@ -70,6 +70,10 @@ function initMaze() {
 
             maze = new Maze(mazeHeight, mazeWidth, seed);
             maze.init();
+
+            //go to DB get all icons
+            icon = new Icon(maze);
+            icon.init();
         }
     })
     .catch(function (error) {
@@ -165,11 +169,7 @@ document.addEventListener("keydown", keyHandler);
 function main() {
     SetupCanvas();
 
-    initMaze();
-
-    //go to DB get all icons
-    icon = new Icon(maze);
-    icon.init();
+    initMazeAndIcon();
 }
 
 function SetupCanvas() {

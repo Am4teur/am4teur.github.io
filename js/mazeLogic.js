@@ -1,8 +1,71 @@
+
+// Your web app's Firebase configuration
+var firebaseConfig = {
+    apiKey: "AIzaSyAjUps19Am2e55-1TC7wCnrK7cF9JkYiFM",
+    authDomain: "mazer-e5ecc.firebaseapp.com",
+    databaseURL: "https://mazer-e5ecc.firebaseio.com",
+    projectId: "mazer-e5ecc",
+    storageBucket: "mazer-e5ecc.appspot.com",
+    messagingSenderId: "695470047240",
+    appId: "1:695470047240:web:06fc02c23b97b7d566d1bd",
+    measurementId: "G-NK6Z81VQWJ"
+};
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+
+const docRef = db.collection("info");
+
+//writeData(); 
+readData();
+
+function writeData() {
+    docRef.add({
+        x: 0,
+        y: 0
+    })
+    .then(function(docRef) {
+        console.log("Document written with ID: ", docRef.id);
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
+
+function readData() {
+    docRef.get().then(function (qSnap) {
+        qSnap.forEach(docSnapshot => {
+            if(docSnapshot) {
+                const myData = docSnapshot.data();
+                console.log("x: " + myData.x);
+                console.log(myData)
+            }
+        });
+    });
+}
+
+function getRealTimeUpdates() {
+    docRef.onSnapshot(function (qSnap) {
+        qSnap.forEach(docSnapshot => {
+            if(docSnapshot) {
+                const myData = docSnapshot.data();
+                console.log("x: " + myData.x);
+            }
+        });
+    });
+}
+
+
+
+
+
+
 let canvas;
 let ctx;
 
 /* Customized variables */
-let cellSize = 20;
+let cellSize = 40;
 let mazeHeight = 8;
 let mazeWidth = 8;
 
@@ -76,8 +139,12 @@ function SetupCanvas() { //main
 
     maze = new Maze(mazeHeight, mazeWidth);
     maze.init();
+
+ //go to DB get all icons
+
     icon = new Icon(maze);
     icon.init();
+
 }
 
 /*_____________________ Classes _______________________*/
@@ -106,13 +173,11 @@ class Maze {
         this.drawGrid();
         this.kruskalAlgorithm();
         if(buttonPressed) {
-            console.log("xxx")
             requestAnimationFrame(Timer);
         }
         else {
             this.drawMaze();
         }
-
     }
 
     drawGrid() { //recheckar bem as coordenadas, deu bem logo a primeira, estranho...
@@ -177,11 +242,13 @@ class Maze {
             document.getElementById("win").innerHTML = "🎉 Congratulations Mazer, you Won! 🎉";
             await new Promise(r => setTimeout(r, 3000)); // sleep for 3s => 3000ms
             document.getElementById("win").innerHTML = "";
-            // pop up message: "winner"
-            // delay
-            // automatically closes
-            /* reset */
-            SetupCanvas();
+            icon.move
+            //BUG HERE, winner can win a lot of times before it starts a new maze, generating lots of mazes
+            //SetupCanvas();
+            icon.deleteIcon();
+            icon.x = 0;
+            icon.y = 0;
+            icon.init();
         }
     }
 
@@ -212,7 +279,9 @@ class Maze {
                 }
             }
         }
-        this.edges.shuffle();
+        let seed = readMazeState();
+
+        this.edges = shuffle(this.edges, 1);
     }
 }
 
@@ -252,27 +321,31 @@ class Edge {
 
 class Icon {
     constructor(myMaze) {
+        //getId
+        //add user + id to DB
         this.x = 0;
         this.y = 0;
         this.myMaze = myMaze;
 
-        this.x1 = cellSize/10;
-        this.y1 = cellSize/10;
-        this.x2 = cellSize - (cellSize/10)*2;
-        this.y2 = cellSize - (cellSize/10)*2;
+        // cellsize = 40
+        // height = width = 8
+        this.x1 = cellSize/5;
+        this.y1 = cellSize/5;
+        this.x2 = cellSize - (cellSize/5)*2;
+        this.y2 = cellSize - (cellSize/5)*2;
     }
 
     init() {
         ctx.fillStyle = "blue";
-        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
+        ctx.fillRect(this.x1, this.y1, this.x2, this.y2);
 
         ctx.fillStyle = "red";
         ctx.fillRect(this.x1, this.y1+cellSize, this.x2, this.y2);
     }
 
-    moveIcon() {
+    drawIcon() {
         ctx.fillStyle = "blue";
-        ctx.fillRect(this.x1, this.y1, this.x2, this.y2);
+        ctx.fillRect(this.x1+cellSize*this.x, this.y1+cellSize*this.y, this.x2, this.y2);
     }
 
     deleteIcon() {
@@ -285,7 +358,7 @@ class Icon {
             this.deleteIcon();
             this.x += oppx[dir];
             this.y += oppy[dir];
-            this.init(); //check this
+            this.drawIcon();
             this.myMaze.checkWinner();
             finished = false;
         }
@@ -293,15 +366,29 @@ class Icon {
 }
 
 /*_____________________ Functions _______________________*/
-Array.prototype.shuffle = function() {
-    let m = this.length;
-    let i;
-    while(m) {
-      i = (Math.random() * m--) >>> 0;
-      [this[m], this[i]] = [this[i], this[m]]
+function shuffle(array, seed) {
+    var m = array.length, t, i;
+  
+    // While there remain elements to shuffle…
+    while (m) {
+  
+      // Pick a remaining element…
+      i = Math.floor(random(seed) * m--);
+  
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+      ++seed;
     }
-    return this;
-}
+  
+    return array;
+  }
+  
+  function random(seed) {
+    var x = Math.sin(seed++) * 10000; 
+    return x - Math.floor(x);
+  }
 
 
 function keyHandler(e) {

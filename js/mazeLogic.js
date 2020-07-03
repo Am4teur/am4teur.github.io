@@ -224,6 +224,9 @@ class Maze {
         else {
             this.drawMaze();
         }
+
+        ctx.font = "20px Arial";
+        ctx.fillText("🏆", 7+40*(mazeHeight-1), 27+40*(mazeWidth-1)); 
     }
 
     drawGrid() { //recheckar bem as coordenadas, deu bem logo a primeira, estranho...
@@ -335,7 +338,7 @@ class Maze {
 
 class Icon {
     constructor(myMaze) {
-        this.id = uuidv4();
+        this.id = "0fd9a13b-2b82-423b-9d21-8c8b93b9cfe0"; //uuidv4();
         console.log("uuid: " + this.id);
         this.x = 0;
         this.y = 0;

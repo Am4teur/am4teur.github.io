@@ -20,6 +20,10 @@
     justify-content: flex-end;
 }
 
+.headers {
+    text-align: center;
+}
+
 .maze {
     /*background-color: lightblue;
     color: white;

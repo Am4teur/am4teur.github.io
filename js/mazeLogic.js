@@ -338,7 +338,7 @@ class Maze {
 
 class Icon {
     constructor(myMaze) {
-        this.id = "0fd9a13b-2b82-423b-9d21-8c8b93b9cfe0"; //uuidv4();
+        this.id = uuidv4();
         console.log("uuid: " + this.id);
         this.x = 0;
         this.y = 0;
